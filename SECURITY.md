@@ -4,7 +4,7 @@
 
 Please do not open a public issue, discussion or pull request for a security problem.
 
-Report it privately through GitHub: [open a private vulnerability report](https://github.com/usetuner/tuner-cli/security/advisories/new).
+Report it privately through GitHub: [open a private vulnerability report](https://github.com/usetuner/tuner-action/security/advisories/new).
 
 Include:
 
