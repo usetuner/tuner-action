@@ -1,0 +1,76 @@
+name: Tuner Simulations
+description: Run Tuner voice-agent simulations and report the result on the job and the pull request.
+author: usetuner
+branding:
+  icon: phone-call
+  color: blue
+
+inputs:
+  api-key:
+    description: Tuner API key. Store it as a repository secret.
+    required: false
+  agent:
+    description: Agent to test. Falls back to the TUNER_AGENT_ID environment variable.
+    required: false
+  tag:
+    description: Run the agent's scenarios with this tag. Set tag or scenario, not both.
+    required: false
+  scenario:
+    description: Scenario IDs to run, comma-separated. Set tag or scenario, not both.
+    required: false
+  language:
+    description: Caller language, a code (en-US) or full name.
+    required: false
+  profile:
+    description: Test profile name.
+    required: false
+  noise:
+    description: Background noise slug.
+    required: false
+  noise-intensity:
+    description: Noise level, low, medium or high.
+    required: false
+  timeout:
+    description: Cancel the run after this long, e.g. 30m. Keep the job's timeout-minutes above it.
+    required: false
+    default: 60m
+  fail-on-tuner-error:
+    description: Fail the check when Tuner couldn't finish the run. By default it passes with a warning.
+    required: false
+    default: "false"
+  meta:
+    description: Extra run metadata, one key=value per line. A key here overrides the one the action fills in.
+    required: false
+  comment:
+    description: Post or update a comment on the pull request.
+    required: false
+    default: "true"
+  github-token:
+    description: Token used only for the pull request comment.
+    required: false
+    default: ${{ github.token }}
+  base-url:
+    description: Tuner API base URL. Advanced.
+    required: false
+
+outputs:
+  run-id:
+    description: Tuner run ID.
+  run-url:
+    description: Link to the run in Tuner.
+  result:
+    description: Run result, e.g. passed or failed.
+  reason:
+    description: Why the run didn't pass, e.g. agent_failed, timeout or an error code.
+  exit-code:
+    description: Tuner CLI exit code.
+  total:
+    description: Number of scenarios.
+  passed:
+    description: Scenarios that passed.
+  failed:
+    description: Scenarios that failed.
+
+runs:
+  using: node24
+  main: dist/index.js
