@@ -5,8 +5,6 @@ updates:
     schedule:
       interval: weekly
     groups:
-      tuner-cli:
-        patterns: ["@usetuner.ai/cli"]
       dev:
         dependency-type: development
   - package-ecosystem: github-actions
