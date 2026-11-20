@@ -32,8 +32,12 @@ Inputs and outputs are listed in `action.yml`.
 | 3 | Pass with a warning (Fail with `fail-on-tuner-error: true`) | the reason and that the build wasn't blocked |
 | 130 / 143 | Cancelled | not updated |
 
-The action fills in run metadata (`commit`, `branch`, `pr_url`, `repo_url`) with `--meta`. On pull requests `commit` is the PR head, not the merge commit. This needs a Tuner CLI release with `--meta` (after 0.1.0).
+The action fills in run metadata (`commit`, `branch`, `pr_url`, `repo_url`) with `--meta`. On pull requests `commit` is the PR head, not the merge commit.
 
-The CLI is pinned to an exact version and vendored into `dist/` by `npm run build`; there is no install at run time. Only Linux and macOS runners are supported.
+## Requirements
+
+- Linux or macOS runner with `npm` on the PATH (GitHub-hosted runners have it).
+- The action installs `@usetuner.ai/cli` from npm at run time, at the exact version pinned in `src/install.ts` (`CLI_VERSION`). Every step installs the same version.
+- `--meta` needs a Tuner CLI release newer than 0.1.0. The pin is 0.1.0 until that release is on npm, so runs fail with "unknown option '--meta'" until the pin is bumped.
 
 The job summary and comment show scenario names, results and failed eval names only. Transcripts, audio and eval reasoning never reach GitHub.
