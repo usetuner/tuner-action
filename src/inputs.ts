@@ -15,6 +15,7 @@ export interface Inputs {
   comment: boolean;
   githubToken: string;
   baseUrl: string;
+  cliPackage: string;
 }
 
 export const DEFAULT_TIMEOUT = "60m";
@@ -47,6 +48,7 @@ export function readInputs(get: GetInput, env: NodeJS.ProcessEnv): Inputs {
     comment: bool("comment", true),
     githubToken: get("github-token").trim(),
     baseUrl: get("base-url").trim(),
+    cliPackage: get("cli-package").trim(),
   };
 }
 

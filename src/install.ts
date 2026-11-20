@@ -5,8 +5,10 @@ import { join } from "node:path";
 export const CLI_PACKAGE = "@usetuner.ai/cli";
 export const CLI_VERSION = "0.1.0";
 
+export const DEFAULT_CLI_PACKAGE = `${CLI_PACKAGE}@${CLI_VERSION}`;
+
 /** `npm install -g` into a private prefix, so the runner's global packages are untouched. */
-export function installArgs(prefix: string): string[] {
+export function installArgs(prefix: string, spec = DEFAULT_CLI_PACKAGE): string[] {
   return [
     "install",
     "--global",
@@ -15,7 +17,7 @@ export function installArgs(prefix: string): string[] {
     "--ignore-scripts",
     "--no-audit",
     "--no-fund",
-    `${CLI_PACKAGE}@${CLI_VERSION}`,
+    spec,
   ];
 }
 
@@ -28,9 +30,9 @@ export function cliScriptPath(prefix: string): string {
  * Installs the pinned CLI from npm and returns its entry script. The script is later run with
  * `node` directly, not through `npx`, so job signals reach the CLI itself.
  */
-export function installCli(prefix: string, npm = "npm"): Promise<string> {
+export function installCli(prefix: string, spec?: string, npm = "npm"): Promise<string> {
   return new Promise((resolve, reject) => {
-    const child = spawn(npm, installArgs(prefix), { stdio: ["ignore", "inherit", "inherit"] });
+    const child = spawn(npm, installArgs(prefix, spec), { stdio: ["ignore", "inherit", "inherit"] });
     child.on("error", reject);
     child.on("close", (code) => {
       if (code === 0) resolve(cliScriptPath(prefix));

@@ -113,10 +113,19 @@ describe("run", () => {
     ]);
   });
 
+  it("installs the pinned CLI unless cli-package is set", async () => {
+    const pinned = setup({ exitCode: 0, doc: passedDoc });
+    await run(pinned.deps);
+    expect(pinned.deps.installCli).toHaveBeenCalledWith("@usetuner.ai/cli@0.1.0");
+    const custom = setup({ exitCode: 0, doc: passedDoc, inputs: { "cli-package": "./cli.tgz" } });
+    await run(custom.deps);
+    expect(custom.deps.installCli).toHaveBeenCalledWith("./cli.tgz");
+  });
+
   it("fails when the CLI can't be installed", async () => {
     const { deps } = setup({ exitCode: 0, doc: passedDoc, installError: new Error("npm install exited 1") });
     await run(deps);
-    expect(deps.setFailed).toHaveBeenCalledWith("Couldn't install Tuner CLI 0.1.0: npm install exited 1");
+    expect(deps.setFailed).toHaveBeenCalledWith("Couldn't install Tuner CLI @usetuner.ai/cli@0.1.0: npm install exited 1");
     expect(deps.runCli).not.toHaveBeenCalled();
   });
 

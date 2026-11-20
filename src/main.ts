@@ -11,7 +11,7 @@ import {
   testedSha,
   type PullRequestInfo,
 } from "./metadata.js";
-import { CLI_VERSION } from "./install.js";
+import { DEFAULT_CLI_PACKAGE } from "./install.js";
 import { outcomeFor, type Outcome } from "./outcome.js";
 import { commentMarker, renderComment, renderSummary } from "./render.js";
 import type { RunOptions, RunResult } from "./runner.js";
@@ -29,7 +29,7 @@ export interface Deps {
   platform: NodeJS.Platform;
   payload: Record<string, unknown>;
   /** Installs the pinned CLI and returns its entry script. */
-  installCli(): Promise<string>;
+  installCli(spec: string): Promise<string>;
   signals: EventEmitter;
   runCli(opts: RunOptions): Promise<RunResult>;
   commentClient(token: string, pr: PullRequestInfo): CommentClient;
@@ -68,13 +68,13 @@ export async function run(deps: Deps): Promise<ActionResult> {
   }
 
   result.args = cliArgs(inputs, meta);
+  const spec = inputs.cliPackage || DEFAULT_CLI_PACKAGE;
+  if (inputs.cliPackage) deps.notice(`Using Tuner CLI from ${spec} instead of ${DEFAULT_CLI_PACKAGE}.`);
   let script: string;
   try {
-    script = await deps.installCli();
+    script = await deps.installCli(spec);
   } catch (err) {
-    deps.setFailed(
-      `Couldn't install Tuner CLI ${CLI_VERSION}: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    deps.setFailed(`Couldn't install Tuner CLI ${spec}: ${err instanceof Error ? err.message : String(err)}`);
     return result;
   }
   const cli = await deps.runCli({

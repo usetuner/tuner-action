@@ -45,7 +45,7 @@ run({
   env: process.env,
   platform: process.platform,
   payload: github.context.payload as Record<string, unknown>,
-  installCli: () => installCli(cliPrefix),
+  installCli: (spec) => installCli(cliPrefix, spec),
   signals: process,
   runCli,
   commentClient,

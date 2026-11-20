@@ -52,6 +52,9 @@ inputs:
   base-url:
     description: Tuner API base URL. Advanced.
     required: false
+  cli-package:
+    description: npm package spec for the Tuner CLI, e.g. a tarball path. Advanced, for testing; defaults to the pinned version.
+    required: false
 
 outputs:
   run-id:
