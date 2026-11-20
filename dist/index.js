@@ -24593,7 +24593,7 @@ import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
 var CLI_PACKAGE = "@usetuner.ai/cli";
-var CLI_VERSION = "0.1.0";
+var CLI_VERSION = "0.2.0";
 var DEFAULT_CLI_PACKAGE = `${CLI_PACKAGE}@${CLI_VERSION}`;
 function installArgs(prefix, spec = DEFAULT_CLI_PACKAGE) {
   return [

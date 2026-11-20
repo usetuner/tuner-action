@@ -38,6 +38,5 @@ The action fills in run metadata (`commit`, `branch`, `pr_url`, `repo_url`) with
 
 - Linux or macOS runner with `npm` on the PATH (GitHub-hosted runners have it).
 - The action installs `@usetuner.ai/cli` from npm at run time, at the exact version pinned in `src/install.ts` (`CLI_VERSION`). Every step installs the same version.
-- `--meta` needs a Tuner CLI release newer than 0.1.0. The pin is 0.1.0 until that release is on npm, so runs fail with "unknown option '--meta'" until the pin is bumped.
 
 The job summary and comment show scenario names, results and failed eval names only. Transcripts, audio and eval reasoning never reach GitHub.
