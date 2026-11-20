@@ -24586,8 +24586,39 @@ function getOctokit(token, options, ...additionalPlugins) {
 }
 
 // src/index.ts
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join as join2 } from "node:path";
+import { tmpdir } from "node:os";
+
+// src/install.ts
+import { spawn } from "node:child_process";
+import { join } from "node:path";
+var CLI_PACKAGE = "@usetuner.ai/cli";
+var CLI_VERSION = "0.1.0";
+function installArgs(prefix) {
+  return [
+    "install",
+    "--global",
+    "--prefix",
+    prefix,
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    `${CLI_PACKAGE}@${CLI_VERSION}`
+  ];
+}
+function cliScriptPath(prefix) {
+  return join(prefix, "lib/node_modules", CLI_PACKAGE, "dist/cli/main.js");
+}
+function installCli(prefix, npm = "npm") {
+  return new Promise((resolve, reject) => {
+    const child = spawn(npm, installArgs(prefix), { stdio: ["ignore", "inherit", "inherit"] });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      if (code === 0) resolve(cliScriptPath(prefix));
+      else reject(new Error(`npm install exited ${code}`));
+    });
+  });
+}
 
 // src/comment.ts
 var COMMENT_SKIPPED = "Couldn't post the PR comment: the workflow needs pull-requests: write permission.";
@@ -25008,8 +25039,17 @@ async function run(deps) {
     return result;
   }
   result.args = cliArgs(inputs, meta);
+  let script;
+  try {
+    script = await deps.installCli();
+  } catch (err) {
+    deps.setFailed(
+      `Couldn't install Tuner CLI ${CLI_VERSION}: ${err instanceof Error ? err.message : String(err)}`
+    );
+    return result;
+  }
   const cli = await deps.runCli({
-    script: deps.cliScript,
+    script,
     args: result.args,
     env: { ...deps.env, TUNER_API_KEY: inputs.apiKey },
     signals: deps.signals
@@ -25059,11 +25099,11 @@ function setOutputs(deps, exitCode, view) {
 }
 
 // src/runner.ts
-import { spawn } from "node:child_process";
+import { spawn as spawn2 } from "node:child_process";
 var SIGNAL_EXIT = { SIGINT: 130, SIGTERM: 143 };
 function runCli(opts) {
   return new Promise((resolve, reject) => {
-    const child = spawn(opts.nodePath ?? process.execPath, [opts.script, ...opts.args], {
+    const child = spawn2(opts.nodePath ?? process.execPath, [opts.script, ...opts.args], {
       env: opts.env,
       stdio: ["ignore", "pipe", "inherit"]
     });
@@ -25097,8 +25137,7 @@ function runCli(opts) {
 }
 
 // src/index.ts
-var here = dirname(fileURLToPath(import.meta.url));
-var cliScript = join(here, "cli/node_modules/@usetuner.ai/cli/dist/cli/main.js");
+var cliPrefix = join2(process.env.RUNNER_TEMP || tmpdir(), "tuner-cli");
 function commentClient(token, pr) {
   const octokit = getOctokit(token);
   const { owner, repo } = context2.repo;
@@ -25133,7 +25172,7 @@ run({
   env: process.env,
   platform: process.platform,
   payload: context2.payload,
-  cliScript,
+  installCli: () => installCli(cliPrefix),
   signals: process,
   runCli,
   commentClient
