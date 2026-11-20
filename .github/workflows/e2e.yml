@@ -1,0 +1,38 @@
+name: E2E
+# Live runs against Tuner staging. Test PRs target e2e/* branches; each sets its case in
+# .github/e2e/case.env (tag, timeout, fail_on_tuner_error, cli_package).
+on:
+  pull_request:
+    branches: ["e2e/**"]
+permissions:
+  contents: read
+  pull-requests: write
+concurrency:
+  group: tuner-agent-576
+  cancel-in-progress: false
+jobs:
+  simulations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: case
+        run: grep -E '^[a-z_]+=' .github/e2e/case.env >> "$GITHUB_OUTPUT"
+      - id: tuner
+        uses: ./
+        with:
+          api-key: ${{ secrets.TUNER_API_KEY }}
+          agent: "576"
+          base-url: https://voice-api.staging.ginni.ai
+          tag: ${{ steps.case.outputs.tag }}
+          timeout: ${{ steps.case.outputs.timeout }}
+          fail-on-tuner-error: ${{ steps.case.outputs.fail_on_tuner_error }}
+          cli-package: ${{ steps.case.outputs.cli_package }}
+      - if: always()
+        env:
+          RUN_ID: ${{ steps.tuner.outputs.run-id }}
+          RESULT: ${{ steps.tuner.outputs.result }}
+          EXIT_CODE: ${{ steps.tuner.outputs.exit-code }}
+        run: echo "run=$RUN_ID result=$RESULT exit=$EXIT_CODE"
