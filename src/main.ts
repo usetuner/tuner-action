@@ -11,6 +11,7 @@ import {
   testedSha,
   type PullRequestInfo,
 } from "./metadata.js";
+import { CLI_VERSION } from "./install.js";
 import { outcomeFor, type Outcome } from "./outcome.js";
 import { commentMarker, renderComment, renderSummary } from "./render.js";
 import type { RunOptions, RunResult } from "./runner.js";
@@ -27,7 +28,8 @@ export interface Deps {
   env: NodeJS.ProcessEnv;
   platform: NodeJS.Platform;
   payload: Record<string, unknown>;
-  cliScript: string;
+  /** Installs the pinned CLI and returns its entry script. */
+  installCli(): Promise<string>;
   signals: EventEmitter;
   runCli(opts: RunOptions): Promise<RunResult>;
   commentClient(token: string, pr: PullRequestInfo): CommentClient;
@@ -66,8 +68,17 @@ export async function run(deps: Deps): Promise<ActionResult> {
   }
 
   result.args = cliArgs(inputs, meta);
+  let script: string;
+  try {
+    script = await deps.installCli();
+  } catch (err) {
+    deps.setFailed(
+      `Couldn't install Tuner CLI ${CLI_VERSION}: ${err instanceof Error ? err.message : String(err)}`,
+    );
+    return result;
+  }
   const cli = await deps.runCli({
-    script: deps.cliScript,
+    script,
     args: result.args,
     env: { ...deps.env, TUNER_API_KEY: inputs.apiKey },
     signals: deps.signals,

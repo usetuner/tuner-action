@@ -1,14 +1,14 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 import type { CommentClient } from "./comment.js";
+import { installCli } from "./install.js";
 import { run } from "./main.js";
 import type { PullRequestInfo } from "./metadata.js";
 import { runCli } from "./runner.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const cliScript = join(here, "cli/node_modules/@usetuner.ai/cli/dist/cli/main.js");
+const cliPrefix = join(process.env.RUNNER_TEMP || tmpdir(), "tuner-cli");
 
 function commentClient(token: string, pr: PullRequestInfo): CommentClient {
   const octokit = github.getOctokit(token);
@@ -45,7 +45,7 @@ run({
   env: process.env,
   platform: process.platform,
   payload: github.context.payload as Record<string, unknown>,
-  cliScript,
+  installCli: () => installCli(cliPrefix),
   signals: process,
   runCli,
   commentClient,

@@ -22,6 +22,7 @@ function setup(opts: {
   platform?: NodeJS.Platform;
   signal?: NodeJS.Signals | null;
   createError?: unknown;
+  installError?: Error;
 }) {
   const written: string[] = [];
   const client: CommentClient = {
@@ -58,7 +59,7 @@ function setup(opts: {
     },
     platform: opts.platform ?? "linux",
     payload: opts.payload ?? prPayload(),
-    cliScript: "cli.js",
+    installCli: vi.fn(async () => opts.installError ? Promise.reject(opts.installError) : "/tmp/cli.js"),
     signals: new EventEmitter(),
     runCli: vi.fn(async () => ({
       exitCode: opts.exitCode,
@@ -95,6 +96,28 @@ describe("run", () => {
     expect(result.comment).toBe("created");
     expect(deps.setFailed).not.toHaveBeenCalled();
     expect(deps.outputs).toMatchObject({ "exit-code": 0, "run-id": 4821, total: 6, passed: 6, failed: 0 });
+  });
+
+  it("passes every metadata key as --meta", async () => {
+    const { deps } = setup({ exitCode: 0, doc: passedDoc, inputs: { meta: "env=staging" } });
+    await run(deps);
+    const { args, script } = vi.mocked(deps.runCli).mock.calls[0]![0];
+    expect(script).toBe("/tmp/cli.js");
+    const metas = args.flatMap((a, i) => (args[i - 1] === "--meta" ? [a] : []));
+    expect(metas).toEqual([
+      "commit=head111",
+      "branch=feat/x",
+      "pr_url=https://github.com/acme/agent/pull/7",
+      "repo_url=https://github.com/acme/agent",
+      "env=staging",
+    ]);
+  });
+
+  it("fails when the CLI can't be installed", async () => {
+    const { deps } = setup({ exitCode: 0, doc: passedDoc, installError: new Error("npm install exited 1") });
+    await run(deps);
+    expect(deps.setFailed).toHaveBeenCalledWith("Couldn't install Tuner CLI 0.1.0: npm install exited 1");
+    expect(deps.runCli).not.toHaveBeenCalled();
   });
 
   it("fails on 1 and posts the comment", async () => {
