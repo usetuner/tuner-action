@@ -24594,7 +24594,8 @@ import { spawn } from "node:child_process";
 import { join } from "node:path";
 var CLI_PACKAGE = "@usetuner.ai/cli";
 var CLI_VERSION = "0.1.0";
-function installArgs(prefix) {
+var DEFAULT_CLI_PACKAGE = `${CLI_PACKAGE}@${CLI_VERSION}`;
+function installArgs(prefix, spec = DEFAULT_CLI_PACKAGE) {
   return [
     "install",
     "--global",
@@ -24603,15 +24604,15 @@ function installArgs(prefix) {
     "--ignore-scripts",
     "--no-audit",
     "--no-fund",
-    `${CLI_PACKAGE}@${CLI_VERSION}`
+    spec
   ];
 }
 function cliScriptPath(prefix) {
   return join(prefix, "lib/node_modules", CLI_PACKAGE, "dist/cli/main.js");
 }
-function installCli(prefix, npm = "npm") {
+function installCli(prefix, spec, npm = "npm") {
   return new Promise((resolve, reject) => {
-    const child = spawn(npm, installArgs(prefix), { stdio: ["ignore", "inherit", "inherit"] });
+    const child = spawn(npm, installArgs(prefix, spec), { stdio: ["ignore", "inherit", "inherit"] });
     child.on("error", reject);
     child.on("close", (code) => {
       if (code === 0) resolve(cliScriptPath(prefix));
@@ -24751,7 +24752,8 @@ function readInputs(get, env) {
     meta: get("meta"),
     comment: bool("comment", true),
     githubToken: get("github-token").trim(),
-    baseUrl: get("base-url").trim()
+    baseUrl: get("base-url").trim(),
+    cliPackage: get("cli-package").trim()
   };
 }
 function cliArgs(inputs, meta) {
@@ -25039,13 +25041,13 @@ async function run(deps) {
     return result;
   }
   result.args = cliArgs(inputs, meta);
+  const spec = inputs.cliPackage || DEFAULT_CLI_PACKAGE;
+  if (inputs.cliPackage) deps.notice(`Using Tuner CLI from ${spec} instead of ${DEFAULT_CLI_PACKAGE}.`);
   let script;
   try {
-    script = await deps.installCli();
+    script = await deps.installCli(spec);
   } catch (err) {
-    deps.setFailed(
-      `Couldn't install Tuner CLI ${CLI_VERSION}: ${err instanceof Error ? err.message : String(err)}`
-    );
+    deps.setFailed(`Couldn't install Tuner CLI ${spec}: ${err instanceof Error ? err.message : String(err)}`);
     return result;
   }
   const cli = await deps.runCli({
@@ -25172,7 +25174,7 @@ run({
   env: process.env,
   platform: process.platform,
   payload: context2.payload,
-  installCli: () => installCli(cliPrefix),
+  installCli: (spec) => installCli(cliPrefix, spec),
   signals: process,
   runCli,
   commentClient
