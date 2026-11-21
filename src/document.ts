@@ -6,6 +6,8 @@ export interface Scenario {
   name: string;
   verdict: string;
   failedEvals: string[];
+  /** Link to the scenario's call. The CLI document has no call URL yet, so this is always null. */
+  callUrl: string | null;
 }
 
 export interface RunView {
@@ -55,6 +57,7 @@ export function project(doc: unknown): RunView | null {
         .filter(isObject)
         .map((e) => str(e.name))
         .filter((name): name is string => name !== null),
+      callUrl: null,
     })),
     errorMessage: error ? truncate(str(error.message)) : null,
   };

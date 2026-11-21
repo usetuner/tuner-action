@@ -25,7 +25,7 @@ describe("comment content", () => {
   it("passed: title and link only", () => {
     const view = project(passedDoc);
     expect(renderComment(outcomeFor(0, view, opts), view, "a")).toBe(
-      `${commentMarker("a")}\n\n### Tuner simulations: all 6 passed\n\n[Open run in Tuner](https://app.usetuner.ai/runs/4821)\n`,
+      `${commentMarker("a")}\n### Tuner simulations: all 6 passed\n[Open run in Tuner](https://app.usetuner.ai/runs/4821)\n`,
     );
   });
 
@@ -33,11 +33,23 @@ describe("comment content", () => {
     const view = project(failedDoc);
     const body = renderComment(outcomeFor(1, view, opts), view, "a");
     expect(body).toContain("### Tuner simulations: 2 of 6 failed");
-    expect(body).toContain("| Scenario | Failed evals |");
-    expect(body).toContain("| Reschedule with a wrong booking ID | Hallucination |");
-    expect(body).toContain("| Ask for a human while booking | Transfer |");
+    expect(body).toContain("| Scenario | Failed evals | |\n|---|---|---|");
+    expect(body).toContain("| Reschedule with a wrong booking ID | Hallucination | |");
+    expect(body).toContain("| Ask for a human while booking | Transfer | |");
     expect(body).not.toContain("happy path");
-    expect(body).toContain("[Open run in Tuner]");
+    expect(body).toContain("|\n\n[Open run in Tuner]");
+  });
+
+  it("links each failed call when the call URL is known", () => {
+    const view = project(failedDoc)!;
+    view.scenarios[1]!.callUrl = "https://app.usetuner.ai/calls/9002";
+    const body = renderComment(outcomeFor(1, view, opts), view, "a");
+    expect(body).toContain(
+      "| Reschedule with a wrong booking ID | Hallucination | [View call](https://app.usetuner.ai/calls/9002) |",
+    );
+    expect(renderSummary(outcomeFor(1, view, opts), view)).toContain(
+      "| Reschedule with a wrong booking ID | Failed | Hallucination | [View call](https://app.usetuner.ai/calls/9002) |",
+    );
   });
 
   it("customer error: reason, no run link", () => {
@@ -52,8 +64,7 @@ describe("comment content", () => {
     const view = project(timeoutDoc);
     const body = renderComment(outcomeFor(3, view, opts), view, "a");
     expect(body).toContain("### Tuner simulations: couldn't finish");
-    expect(body).toContain("Your build wasn&#39;t blocked.");
-    expect(body).toContain("[Open run in Tuner]");
+    expect(body).toContain("Your build wasn&#39;t blocked.\n[Open run in Tuner]");
   });
 
   it("caps the failed table", () => {
@@ -75,9 +86,17 @@ describe("comment content", () => {
   it("summary lists every scenario with its result", () => {
     const view = project(failedDoc);
     const md = renderSummary(outcomeFor(1, view, opts), view);
-    expect(md).toContain("| Scenario | Result | Failed evals |");
-    expect(md).toContain("| Book a cleaning, happy path | Passed |  |");
-    expect(md).toContain("| Reschedule with a wrong booking ID | Failed | Hallucination |");
+    expect(md).toContain("| Scenario | Result | Failed evals | |\n|---|---|---|---|");
+    expect(md).toContain("| Book a cleaning, happy path | Passed | | |");
+    expect(md).toContain("| Reschedule with a wrong booking ID | Failed | Hallucination | |");
+  });
+
+  it("summary of other outcomes mirrors the comment", () => {
+    for (const [code, doc] of [[0, passedDoc], [2, noCreditsDoc], [3, timeoutDoc]] as const) {
+      const view = project(doc);
+      const outcome = outcomeFor(code, view, opts);
+      expect(`${commentMarker("a")}\n${renderSummary(outcome, view)}`).toBe(renderComment(outcome, view, "a"));
+    }
   });
 
   it("drops a non-http run link", () => {
