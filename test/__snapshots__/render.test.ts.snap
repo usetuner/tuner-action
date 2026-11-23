@@ -31,10 +31,14 @@ Not enough credits to start this run.
 exports[`failed > renders the comment 1`] = `
 "<!-- tuner-action:v1 agent=agent_abc -->
 ### Tuner simulations: 2 of 6 failed
-| Scenario | Failed evals | |
-|---|---|---|
-| Reschedule with a wrong booking ID | Hallucination | |
-| Ask for a human while booking | Transfer | |
+| Scenario | Result | Failed evals | |
+|---|---|---|---|
+| Book a cleaning, happy path | Passed | | |
+| Reschedule with a wrong booking ID | Failed | Hallucination | [View call](https://app.usetuner.ai/call-logs/9002) |
+| Move an appointment to next week | Passed | | |
+| Ask for a human while booking | Failed | Transfer | [View call](https://app.usetuner.ai/call-logs/9004) |
+| Cancel and ask about the refund policy | Passed | | |
+| Book for a family member | Passed | | |
 
 [Open run in Tuner](https://app.usetuner.ai/runs/4821)
 "
@@ -45,9 +49,9 @@ exports[`failed > renders the summary 1`] = `
 | Scenario | Result | Failed evals | |
 |---|---|---|---|
 | Book a cleaning, happy path | Passed | | |
-| Reschedule with a wrong booking ID | Failed | Hallucination | |
+| Reschedule with a wrong booking ID | Failed | Hallucination | [View call](https://app.usetuner.ai/call-logs/9002) |
 | Move an appointment to next week | Passed | | |
-| Ask for a human while booking | Failed | Transfer | |
+| Ask for a human while booking | Failed | Transfer | [View call](https://app.usetuner.ai/call-logs/9004) |
 | Cancel and ask about the refund policy | Passed | | |
 | Book for a family member | Passed | | |
 
@@ -84,14 +88,14 @@ exports[`passed > renders the summary 1`] = `
 exports[`tuner error > renders the comment 1`] = `
 "<!-- tuner-action:v1 agent=agent_abc -->
 ### Tuner simulations: couldn't finish
-Tuner couldn&#39;t finish this run &#40;run timed out after 30 minutes&#41;. Your build wasn&#39;t blocked.
+Tuner couldn't finish this run (run timed out after 30 minutes). Your build wasn't blocked.
 [Open run in Tuner](https://app.usetuner.ai/runs/4821)
 "
 `;
 
 exports[`tuner error > renders the summary 1`] = `
 "### Tuner simulations: couldn't finish
-Tuner couldn&#39;t finish this run &#40;run timed out after 30 minutes&#41;. Your build wasn&#39;t blocked.
+Tuner couldn't finish this run (run timed out after 30 minutes). Your build wasn't blocked.
 [Open run in Tuner](https://app.usetuner.ai/runs/4821)
 "
 `;

@@ -29,27 +29,81 @@ describe("comment content", () => {
     );
   });
 
-  it("failed: lists only failed scenarios with their evals", () => {
+  it("failed: lists every scenario, failed ones with evals and call links", () => {
     const view = project(failedDoc);
     const body = renderComment(outcomeFor(1, view, opts), view, "a");
-    expect(body).toContain("### Tuner simulations: 2 of 6 failed");
-    expect(body).toContain("| Scenario | Failed evals | |\n|---|---|---|");
-    expect(body).toContain("| Reschedule with a wrong booking ID | Hallucination | |");
-    expect(body).toContain("| Ask for a human while booking | Transfer | |");
-    expect(body).not.toContain("happy path");
-    expect(body).toContain("|\n\n[Open run in Tuner]");
+    expect(body).toBe(
+      [
+        commentMarker("a"),
+        "### Tuner simulations: 2 of 6 failed",
+        "| Scenario | Result | Failed evals | |",
+        "|---|---|---|---|",
+        "| Book a cleaning, happy path | Passed | | |",
+        "| Reschedule with a wrong booking ID | Failed | Hallucination | [View call](https://app.usetuner.ai/call-logs/9002) |",
+        "| Move an appointment to next week | Passed | | |",
+        "| Ask for a human while booking | Failed | Transfer | [View call](https://app.usetuner.ai/call-logs/9004) |",
+        "| Cancel and ask about the refund policy | Passed | | |",
+        "| Book for a family member | Passed | | |",
+        "",
+        "[Open run in Tuner](https://app.usetuner.ai/runs/4821)",
+        "",
+      ].join("\n"),
+    );
   });
 
-  it("links each failed call when the call URL is known", () => {
-    const view = project(failedDoc)!;
-    view.scenarios[1]!.callUrl = "https://app.usetuner.ai/calls/9002";
+  it("comment and summary share the failed layout", () => {
+    const view = project(failedDoc);
+    const outcome = outcomeFor(1, view, opts);
+    expect(renderComment(outcome, view, "a")).toBe(`${commentMarker("a")}\n${renderSummary(outcome, view)}`);
+  });
+
+  it("builds the call link on the run link's origin", () => {
+    const run = { ...failedDoc.run, dashboard_url: "https://app.example.com/simulations/runs/4821?workspace=7" };
+    const view = project({ ...failedDoc, run });
+    expect(view?.scenarios[1]?.callUrl).toBe("https://app.example.com/call-logs/9002");
+  });
+
+  it("leaves the call cell empty without a call id", () => {
+    const doc = { ...failedDoc, scenarios: failedDoc.scenarios.map((s) => ({ ...s, call_id: null })) };
+    const view = project(doc);
+    expect(renderComment(outcomeFor(1, view, opts), view, "a")).toContain(
+      "| Reschedule with a wrong booking ID | Failed | Hallucination | |",
+    );
+  });
+
+  it("labels other verdicts and unknown ones", () => {
+    const doc = {
+      ...failedDoc,
+      scenarios: [
+        { ...failedDoc.scenarios[0]!, name: "A", verdict: "not_connected" },
+        { ...failedDoc.scenarios[0]!, name: "B", verdict: "setup_error" },
+        { ...failedDoc.scenarios[0]!, name: "C", verdict: "something_new" },
+      ],
+    };
+    const view = project(doc);
     const body = renderComment(outcomeFor(1, view, opts), view, "a");
-    expect(body).toContain(
-      "| Reschedule with a wrong booking ID | Hallucination | [View call](https://app.usetuner.ai/calls/9002) |",
-    );
-    expect(renderSummary(outcomeFor(1, view, opts), view)).toContain(
-      "| Reschedule with a wrong booking ID | Failed | Hallucination | [View call](https://app.usetuner.ai/calls/9002) |",
-    );
+    expect(body).toContain("| A | Not connected | | |");
+    expect(body).toContain("| B | Setup error | | |");
+    expect(body).toContain("| C | Didn't finish | | |");
+  });
+
+  it("shows eval names with markdown characters as typed", () => {
+    const doc = {
+      ...failedDoc,
+      scenarios: [
+        {
+          ...failedDoc.scenarios[1]!,
+          failed_evals: [
+            { name: "human_transfer", value: "FAIL" },
+            { name: "`tone`", value: "FAIL" },
+          ],
+        },
+      ],
+    };
+    const view = project(doc);
+    const body = renderComment(outcomeFor(1, view, opts), view, "a");
+    expect(body).toContain("| Failed | human\\_transfer, \\`tone\\` |");
+    expect(body).not.toContain("&#");
   });
 
   it("customer error: reason, no run link", () => {
@@ -64,15 +118,15 @@ describe("comment content", () => {
     const view = project(timeoutDoc);
     const body = renderComment(outcomeFor(3, view, opts), view, "a");
     expect(body).toContain("### Tuner simulations: couldn't finish");
-    expect(body).toContain("Your build wasn&#39;t blocked.\n[Open run in Tuner]");
+    expect(body).toContain("Your build wasn't blocked.\n[Open run in Tuner]");
   });
 
-  it("caps the failed table", () => {
+  it("caps the comment table, failed scenarios first", () => {
     const many = {
       ...failedDoc,
-      summary: { ...failedDoc.summary, total: 60, failed: 60 },
+      summary: { ...failedDoc.summary, total: 60, failed: 1 },
       scenarios: Array.from({ length: 60 }, (_, i) => ({
-        ...failedDoc.scenarios[1]!,
+        ...failedDoc.scenarios[i === 59 ? 1 : 0]!,
         scenario_id: i,
         name: `S${i}`,
       })),
@@ -80,15 +134,9 @@ describe("comment content", () => {
     const view = project(many);
     const body = renderComment(outcomeFor(1, view, opts), view, "a");
     expect(body.match(/^\| S\d+ /gm)).toHaveLength(COMMENT_MAX_ROWS);
+    expect(body).toContain("|---|---|---|---|\n| S59 | Failed |");
     expect(body).toContain("and 10 more");
-  });
-
-  it("summary lists every scenario with its result", () => {
-    const view = project(failedDoc);
-    const md = renderSummary(outcomeFor(1, view, opts), view);
-    expect(md).toContain("| Scenario | Result | Failed evals | |\n|---|---|---|---|");
-    expect(md).toContain("| Book a cleaning, happy path | Passed | | |");
-    expect(md).toContain("| Reschedule with a wrong booking ID | Failed | Hallucination | |");
+    expect(renderSummary(outcomeFor(1, view, opts), view).match(/^\| S\d+ /gm)).toHaveLength(60);
   });
 
   it("summary of other outcomes mirrors the comment", () => {
@@ -109,7 +157,11 @@ describe("escapeText", () => {
   it("neutralizes mentions, markdown, html and table pipes", () => {
     const out = escapeText("@org/team <img src=x> | **bold** [x](y) #12\nnext");
     expect(out).not.toMatch(/@[a-z]/);
-    expect(out.replace(/&#\d+;/g, "")).not.toMatch(/[<>|*[\]#\n]/);
+    expect(out.replace(/\\[<>|*[\]#]/g, "")).not.toMatch(/[<>|*[\]#\n]/);
+  });
+
+  it("escapes a backslash so it can't escape the next character", () => {
+    expect(escapeText("a\\|b")).toBe("a\\\\\\|b");
   });
 });
 

@@ -6,7 +6,7 @@ export interface Scenario {
   name: string;
   verdict: string;
   failedEvals: string[];
-  /** Link to the scenario's call. The CLI document has no call URL yet, so this is always null. */
+  /** The call's page in the Tuner dashboard, on the run link's origin. */
   callUrl: string | null;
 }
 
@@ -42,9 +42,10 @@ export function project(doc: unknown): RunView | null {
   const summary = isObject(doc.summary) ? doc.summary : {};
   const error = isObject(doc.error) ? doc.error : null;
   const scenarios = Array.isArray(doc.scenarios) ? doc.scenarios.filter(isObject) : [];
+  const runUrl = run ? httpUrl(run.dashboard_url) : null;
   return {
     runId: run && typeof run.id === "number" ? run.id : null,
-    runUrl: run ? httpUrl(run.dashboard_url) : null,
+    runUrl,
     result: run ? str(run.result) : null,
     reason: str(doc.reason),
     total: count(summary.total),
@@ -57,10 +58,16 @@ export function project(doc: unknown): RunView | null {
         .filter(isObject)
         .map((e) => str(e.name))
         .filter((name): name is string => name !== null),
-      callUrl: null,
+      callUrl: callUrl(runUrl, s.call_id),
     })),
     errorMessage: error ? truncate(str(error.message)) : null,
   };
+}
+
+/** The dashboard's call page, `/call-logs/<call_id>`, on the same origin as the run link. */
+function callUrl(runUrl: string | null, callId: unknown): string | null {
+  if (!runUrl || typeof callId !== "number" || !Number.isSafeInteger(callId) || callId <= 0) return null;
+  return `${new URL(runUrl).origin}/call-logs/${callId}`;
 }
 
 function isObject(v: unknown): v is Record<string, unknown> {
