@@ -1,0 +1,97 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`canceled > renders the comment 1`] = `
+"<!-- tuner-action:v1 agent=agent_abc -->
+### Tuner simulations: canceled
+Run canceled because the job was stopped.
+[Open run in Tuner](https://app.usetuner.ai/runs/4821)
+"
+`;
+
+exports[`canceled > renders the summary 1`] = `
+"### Tuner simulations: canceled
+Run canceled because the job was stopped.
+[Open run in Tuner](https://app.usetuner.ai/runs/4821)
+"
+`;
+
+exports[`customer error > renders the comment 1`] = `
+"<!-- tuner-action:v1 agent=agent_abc -->
+### Tuner simulations: couldn't run
+Not enough credits to start this run.
+"
+`;
+
+exports[`customer error > renders the summary 1`] = `
+"### Tuner simulations: couldn't run
+Not enough credits to start this run.
+"
+`;
+
+exports[`failed > renders the comment 1`] = `
+"<!-- tuner-action:v1 agent=agent_abc -->
+### Tuner simulations: 2 of 6 failed
+| Scenario | Failed evals | |
+|---|---|---|
+| Reschedule with a wrong booking ID | Hallucination | |
+| Ask for a human while booking | Transfer | |
+
+[Open run in Tuner](https://app.usetuner.ai/runs/4821)
+"
+`;
+
+exports[`failed > renders the summary 1`] = `
+"### Tuner simulations: 2 of 6 failed
+| Scenario | Result | Failed evals | |
+|---|---|---|---|
+| Book a cleaning, happy path | Passed | | |
+| Reschedule with a wrong booking ID | Failed | Hallucination | |
+| Move an appointment to next week | Passed | | |
+| Ask for a human while booking | Failed | Transfer | |
+| Cancel and ask about the refund policy | Passed | | |
+| Book for a family member | Passed | | |
+
+[Open run in Tuner](https://app.usetuner.ai/runs/4821)
+"
+`;
+
+exports[`no result > renders the comment 1`] = `
+"<!-- tuner-action:v1 agent=agent_abc -->
+### Tuner simulations: couldn't run
+Tuner CLI exited 7 without a result; see the log above.
+"
+`;
+
+exports[`no result > renders the summary 1`] = `
+"### Tuner simulations: couldn't run
+Tuner CLI exited 7 without a result; see the log above.
+"
+`;
+
+exports[`passed > renders the comment 1`] = `
+"<!-- tuner-action:v1 agent=agent_abc -->
+### Tuner simulations: all 6 passed
+[Open run in Tuner](https://app.usetuner.ai/runs/4821)
+"
+`;
+
+exports[`passed > renders the summary 1`] = `
+"### Tuner simulations: all 6 passed
+[Open run in Tuner](https://app.usetuner.ai/runs/4821)
+"
+`;
+
+exports[`tuner error > renders the comment 1`] = `
+"<!-- tuner-action:v1 agent=agent_abc -->
+### Tuner simulations: couldn't finish
+Tuner couldn&#39;t finish this run &#40;run timed out after 30 minutes&#41;. Your build wasn&#39;t blocked.
+[Open run in Tuner](https://app.usetuner.ai/runs/4821)
+"
+`;
+
+exports[`tuner error > renders the summary 1`] = `
+"### Tuner simulations: couldn't finish
+Tuner couldn&#39;t finish this run &#40;run timed out after 30 minutes&#41;. Your build wasn&#39;t blocked.
+[Open run in Tuner](https://app.usetuner.ai/runs/4821)
+"
+`;
