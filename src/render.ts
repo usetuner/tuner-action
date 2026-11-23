@@ -15,16 +15,18 @@ const VERDICT_LABELS: Record<string, string> = {
   ran: "Ran",
   pending: "Pending",
   canceled: "Canceled",
+  setup_error: "Setup error",
 };
 
 /**
- * Escapes a customer string for Markdown and HTML on one line. `@` gets a zero-width space so
- * a name like `@org/team` doesn't mention anyone.
+ * Escapes a customer string for Markdown and HTML on one line with backslashes, which GitHub
+ * renders as the plain character (it shows numeric entities as typed). `@` gets a zero-width
+ * space so a name like `@org/team` doesn't mention anyone.
  */
 export function escapeText(value: string): string {
   return value
     .replace(/[\r\n\t]+/g, " ")
-    .replace(/[&<>"'|\\`*_[\]#~!()]/g, (c) => `&#${c.charCodeAt(0)};`)
+    .replace(/[\\`*_[\]<>&|#~!]/g, (c) => `\\${c}`)
     .replace(/@/g, "@​")
     .trim();
 }
@@ -63,24 +65,25 @@ function table(header: string[], rows: string[][], total: number, max: number): 
   return lines.join("\n");
 }
 
-/** Comment table: failed scenarios only. */
-function failedTable(view: RunView): string | null {
-  const failed = view.scenarios.filter((s) => s.verdict === "failed");
-  if (failed.length === 0) return null;
-  const rows = failed.map((s) => [escapeText(s.name), evalNames(s), callLink(s)]);
-  return table(["Scenario", "Failed evals", ""], rows, failed.length, COMMENT_MAX_ROWS);
-}
-
-/** Summary table: every scenario with its result. */
-function scenarioTable(view: RunView): string | null {
-  if (view.scenarios.length === 0) return null;
-  const rows = view.scenarios.map((s) => [
+/**
+ * Every scenario with its result; failed rows add their evals and call link. When rows are
+ * cut, failed scenarios come first so none is hidden.
+ */
+function scenarioTable(view: RunView, max: number): string | null {
+  const all = view.scenarios;
+  if (all.length === 0) return null;
+  const failedFirst = () => [
+    ...all.filter((s) => s.verdict === "failed"),
+    ...all.filter((s) => s.verdict !== "failed"),
+  ];
+  const ordered = all.length > max ? failedFirst() : all;
+  const rows = ordered.map((s) => [
     escapeText(s.name),
-    VERDICT_LABELS[s.verdict] ?? escapeText(s.verdict),
+    VERDICT_LABELS[s.verdict] ?? "Didn't finish",
     s.verdict === "failed" ? evalNames(s) : "",
     s.verdict === "failed" ? callLink(s) : "",
   ]);
-  return table(["Scenario", "Result", "Failed evals", ""], rows, view.scenarios.length, SUMMARY_MAX_ROWS);
+  return table(["Scenario", "Result", "Failed evals", ""], rows, all.length, max);
 }
 
 /** The outcome line under the title, as plain escaped text. */
@@ -103,9 +106,13 @@ function render(outcome: Outcome, view: RunView | null, tableText: string | null
   return `${lines.join("\n")}\n`;
 }
 
-/** The job summary: like the comment, but a failed run lists every scenario. */
+function body(outcome: Outcome, view: RunView | null, maxRows: number): string {
+  return render(outcome, view, outcome.kind === "failed" && view ? scenarioTable(view, maxRows) : null);
+}
+
+/** The job summary: the comment's body with a longer table. */
 export function renderSummary(outcome: Outcome, view: RunView | null): string {
-  return render(outcome, view, outcome.kind === "failed" && view ? scenarioTable(view) : null);
+  return body(outcome, view, SUMMARY_MAX_ROWS);
 }
 
 export function commentMarker(agent: string): string {
@@ -113,9 +120,8 @@ export function commentMarker(agent: string): string {
   return `<!-- tuner-action:v1 agent=${key} -->`;
 }
 
-/** The PR comment: passed scenarios appear only as a count; failed ones are listed. */
+/** The PR comment: a failed run lists every scenario, up to `COMMENT_MAX_ROWS`. */
 export function renderComment(outcome: Outcome, view: RunView | null, agent: string): string {
-  const table = outcome.kind === "failed" && view ? failedTable(view) : null;
-  const body = `${commentMarker(agent)}\n${render(outcome, view, table)}`;
-  return body.length > COMMENT_MAX_CHARS ? `${body.slice(0, COMMENT_MAX_CHARS - 2)}…\n` : body;
+  const text = `${commentMarker(agent)}\n${body(outcome, view, COMMENT_MAX_ROWS)}`;
+  return text.length > COMMENT_MAX_CHARS ? `${text.slice(0, COMMENT_MAX_CHARS - 2)}…\n` : text;
 }

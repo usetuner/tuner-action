@@ -27,7 +27,7 @@ Inputs and outputs are listed in `action.yml`.
 | CLI exit | Check | PR comment |
 | --- | --- | --- |
 | 0 | Pass | totals, link to run |
-| 1 | Fail | failed scenarios with failed evals, link to run |
+| 1 | Fail | every scenario with its result; failed ones with failed evals and a call link; link to run |
 | 2 | Fail | the reason and what to fix |
 | 3 | Pass with a warning (Fail with `fail-on-tuner-error: true`) | the reason and that the build wasn't blocked |
 | 130 / 143 | Cancelled | not updated |
