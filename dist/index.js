@@ -24593,7 +24593,7 @@ import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
 var CLI_PACKAGE = "@usetuner.ai/cli";
-var CLI_VERSION = "0.2.0";
+var CLI_VERSION = "0.3.0";
 var DEFAULT_CLI_PACKAGE = `${CLI_PACKAGE}@${CLI_VERSION}`;
 function installArgs(prefix, spec = DEFAULT_CLI_PACKAGE) {
   return [
@@ -24749,6 +24749,7 @@ function readInputs(get, env) {
     agent: get("agent").trim() || (env.TUNER_AGENT_ID ?? "").trim(),
     tag: get("tag").trim(),
     scenario: get("scenario").trim(),
+    suite: get("suite").trim(),
     language: get("language").trim(),
     profile: get("profile").trim(),
     noise: get("noise").trim(),
@@ -24770,6 +24771,7 @@ function cliArgs(inputs, meta) {
     ["--agent", inputs.agent],
     ["--tag", inputs.tag],
     ["--scenario", inputs.scenario],
+    ["--suite", inputs.suite],
     ["--language", inputs.language],
     ["--profile", inputs.profile],
     ["--noise", inputs.noise],

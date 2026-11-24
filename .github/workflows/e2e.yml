@@ -1,6 +1,6 @@
 name: E2E
 # Live runs against Tuner staging. Test PRs target e2e/* branches; each sets its case in
-# .github/e2e/case.env (tag, timeout, fail_on_tuner_error, cli_package).
+# .github/e2e/case.env (tag or suite, timeout, fail_on_tuner_error, cli_package).
 on:
   pull_request:
     branches: ["e2e/**"]
@@ -27,6 +27,7 @@ jobs:
           agent: "576"
           base-url: https://voice-api.staging.ginni.ai
           tag: ${{ steps.case.outputs.tag }}
+          suite: ${{ steps.case.outputs.suite }}
           timeout: ${{ steps.case.outputs.timeout }}
           fail-on-tuner-error: ${{ steps.case.outputs.fail_on_tuner_error }}
           cli-package: ${{ steps.case.outputs.cli_package }}

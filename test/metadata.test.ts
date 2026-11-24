@@ -92,4 +92,17 @@ describe("cliArgs", () => {
     ]);
     expect(args.join(" ")).not.toContain("tnr_secret");
   });
+
+  it("passes suite as --suite, with the metadata", () => {
+    const inputs = readInputs((n) => ({ "api-key": "tnr_secret", agent: "agent_abc", suite: " Smoke " })[n] ?? "", {});
+    expect(inputs.suite).toBe("Smoke");
+    expect(cliArgs(inputs, { commit: "c1" })).toEqual([
+      "sim", "run",
+      "--agent", "agent_abc",
+      "--suite", "Smoke",
+      "--timeout", "60m",
+      "--meta", "commit=c1",
+      "--output", "json",
+    ]);
+  });
 });
