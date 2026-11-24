@@ -24,6 +24,17 @@ jobs:
 
 Inputs and outputs are listed in `action.yml`.
 
+Set exactly one of `tag`, `scenario` or `suite`. A suite is a saved list of scenarios with its own run settings, so `suite` can't be combined with `language`, `profile`, `noise` or `noise-intensity`:
+
+```yaml
+        with:
+          api-key: ${{ secrets.TUNER_API_KEY }}
+          agent: ${{ vars.TUNER_AGENT_ID }}
+          suite: smoke
+```
+
+A suite run reports pass or fail the same way as a tag run.
+
 | CLI exit | Check | PR comment |
 | --- | --- | --- |
 | 0 | Pass | totals, link to run |

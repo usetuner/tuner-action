@@ -13,10 +13,13 @@ inputs:
     description: Agent to test. Falls back to the TUNER_AGENT_ID environment variable.
     required: false
   tag:
-    description: Run the agent's scenarios with this tag. Set tag or scenario, not both.
+    description: Run the agent's scenarios with this tag. Set exactly one of tag, scenario or suite.
     required: false
   scenario:
-    description: Scenario IDs to run, comma-separated. Set tag or scenario, not both.
+    description: Scenario IDs to run, comma-separated. Set exactly one of tag, scenario or suite.
+    required: false
+  suite:
+    description: Run this suite by name, with its own scenarios and settings. Don't set language, profile, noise or noise-intensity with it.
     required: false
   language:
     description: Caller language, a code (en-US) or full name.

@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 /** The one place the Tuner CLI version is pinned. */
 export const CLI_PACKAGE = "@usetuner.ai/cli";
-export const CLI_VERSION = "0.2.0";
+export const CLI_VERSION = "0.3.0";
 
 export const DEFAULT_CLI_PACKAGE = `${CLI_PACKAGE}@${CLI_VERSION}`;
 

@@ -5,6 +5,7 @@ export interface Inputs {
   agent: string;
   tag: string;
   scenario: string;
+  suite: string;
   language: string;
   profile: string;
   noise: string;
@@ -38,6 +39,7 @@ export function readInputs(get: GetInput, env: NodeJS.ProcessEnv): Inputs {
     agent: get("agent").trim() || (env.TUNER_AGENT_ID ?? "").trim(),
     tag: get("tag").trim(),
     scenario: get("scenario").trim(),
+    suite: get("suite").trim(),
     language: get("language").trim(),
     profile: get("profile").trim(),
     noise: get("noise").trim(),
@@ -61,6 +63,7 @@ export function cliArgs(inputs: Inputs, meta: Metadata): string[] {
     ["--agent", inputs.agent],
     ["--tag", inputs.tag],
     ["--scenario", inputs.scenario],
+    ["--suite", inputs.suite],
     ["--language", inputs.language],
     ["--profile", inputs.profile],
     ["--noise", inputs.noise],
