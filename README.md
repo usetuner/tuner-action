@@ -35,6 +35,8 @@ Set exactly one of `tag`, `scenario` or `suite`. A suite is a saved list of scen
 
 A suite run reports pass or fail the same way as a tag run.
 
+Set `max-concurrent-calls` (1 to 10) to cap how many simulation calls run at once for the agent. When it's unset, the agent's saved value is used.
+
 | CLI exit | Check | PR comment |
 | --- | --- | --- |
 | 0 | Pass | totals, link to run |

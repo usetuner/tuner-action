@@ -24754,6 +24754,7 @@ function readInputs(get, env) {
     profile: get("profile").trim(),
     noise: get("noise").trim(),
     noiseIntensity: get("noise-intensity").trim(),
+    maxConcurrentCalls: get("max-concurrent-calls").trim(),
     timeout: get("timeout").trim() || DEFAULT_TIMEOUT,
     failOnTunerError: bool("fail-on-tuner-error", false),
     meta: get("meta"),
@@ -24776,6 +24777,7 @@ function cliArgs(inputs, meta) {
     ["--profile", inputs.profile],
     ["--noise", inputs.noise],
     ["--noise-intensity", inputs.noiseIntensity],
+    ["--max-concurrent-calls", inputs.maxConcurrentCalls],
     ["--timeout", inputs.timeout]
   ];
   for (const [flag, value] of flags) if (value) args.push(flag, value);
