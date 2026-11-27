@@ -105,4 +105,26 @@ describe("cliArgs", () => {
       "--output", "json",
     ]);
   });
+  it("passes max-concurrent-calls as --max-concurrent-calls when set", () => {
+    const inputs = readInputs((n) => ({ "api-key": "k", agent: "agent_abc", tag: "smoke", "max-concurrent-calls": " 3 " })[n] ?? "", {});
+    expect(inputs.maxConcurrentCalls).toBe("3");
+    expect(cliArgs(inputs, {})).toEqual([
+      "sim", "run",
+      "--agent", "agent_abc",
+      "--tag", "smoke",
+      "--max-concurrent-calls", "3",
+      "--timeout", "60m",
+      "--output", "json",
+    ]);
+  });
+
+  it("leaves out --max-concurrent-calls when unset or empty", () => {
+    for (const value of [undefined, "", "  "]) {
+      const inputs = readInputs(
+        (n) => ({ "api-key": "k", agent: "agent_abc", tag: "smoke", ...(value === undefined ? {} : { "max-concurrent-calls": value }) } as Record<string, string>)[n] ?? "",
+        {},
+      );
+      expect(cliArgs(inputs, {})).not.toContain("--max-concurrent-calls");
+    }
+  });
 });

@@ -33,6 +33,9 @@ inputs:
   noise-intensity:
     description: Noise level, low, medium or high.
     required: false
+  max-concurrent-calls:
+    description: Max simulation calls to run at once for the agent, 1 to 10. When unset, the agent's saved value is used.
+    required: false
   timeout:
     description: Cancel the run after this long, e.g. 30m. Keep the job's timeout-minutes above it.
     required: false

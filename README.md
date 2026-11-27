@@ -110,6 +110,7 @@ Set exactly one of `tag`, `scenario` or `suite`.
 | `profile` | no | | Test profile name. |
 | `noise` | no | | Background noise slug. |
 | `noise-intensity` | no | | Noise level: `low`, `medium` or `high`. |
+| `max-concurrent-calls` | no | agent's saved value | Most simulation calls in progress at once, 1 to 10. Saved on the agent for later runs. |
 | `timeout` | no | `60m` | Cancel the run after this long, e.g. `30m`. Keep the job's `timeout-minutes` above it. |
 | `fail-on-tuner-error` | no | `false` | Fail the check when Tuner couldn't finish the run. By default it passes with a warning. |
 | `meta` | no | | Extra run metadata, one `key=value` per line. A key here overrides the one the action fills in. |

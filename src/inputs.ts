@@ -10,6 +10,7 @@ export interface Inputs {
   profile: string;
   noise: string;
   noiseIntensity: string;
+  maxConcurrentCalls: string;
   timeout: string;
   failOnTunerError: boolean;
   meta: string;
@@ -44,6 +45,7 @@ export function readInputs(get: GetInput, env: NodeJS.ProcessEnv): Inputs {
     profile: get("profile").trim(),
     noise: get("noise").trim(),
     noiseIntensity: get("noise-intensity").trim(),
+    maxConcurrentCalls: get("max-concurrent-calls").trim(),
     timeout: get("timeout").trim() || DEFAULT_TIMEOUT,
     failOnTunerError: bool("fail-on-tuner-error", false),
     meta: get("meta"),
@@ -68,6 +70,7 @@ export function cliArgs(inputs: Inputs, meta: Metadata): string[] {
     ["--profile", inputs.profile],
     ["--noise", inputs.noise],
     ["--noise-intensity", inputs.noiseIntensity],
+    ["--max-concurrent-calls", inputs.maxConcurrentCalls],
     ["--timeout", inputs.timeout],
   ];
   for (const [flag, value] of flags) if (value) args.push(flag, value);
